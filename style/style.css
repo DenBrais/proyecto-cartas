@@ -1,0 +1,74 @@
+body {
+  font-family: "Courier New", Courier, monospace, sans-serif;
+  text-align: center;
+  background-color: #eee5e5;
+}
+.level-selector {
+  margin: 10px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.card-container {
+  perspective: 1000px;
+  margin: 10px auto;
+  display: grid;
+  gap: 5px;
+  justify-content: center;
+  width: fit-content;
+}
+.card-inner {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  text-align: center;
+  transition:
+    transform 0.8s,
+    box-shadow 0.3s;
+  transform-style: preserve-3d;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.card-front {
+  justify-content: end;
+  background-color: #08eaf1;
+  color: black;
+  background-size: cover;
+  background-position: center;
+}
+
+.card-back {
+  background-color: #ea08ffaf;
+  background-size: cover;
+  background-position: center;
+  color: rgb(36, 199, 199);
+  font-weight: bold;
+  transform: rotateY(180deg);
+}
+
+/*efectos aplicados por programacion*/
+.card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.card-inner.iluminated {
+  box-shadow: 0 0 20px 0 gold;
+}
+.car.blocked {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.9;
+}
