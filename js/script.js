@@ -119,7 +119,7 @@ function cardEventAssign(cardElement) {
   //y volverla a voltear automaticamente despues de 2 segundos
   cardElement.addEventListener("click", () => {
     //volteo la primera carta
-    cardElement.classList.toggle("flipped");
+    cardElement.classList.add("flipped");
 
     //guardo la carta seleccionada y comparo con la segunda carta
     if (firstCardSelected === null) {
@@ -132,13 +132,14 @@ function cardEventAssign(cardElement) {
       //comparar las dos cartas seleccionadas
       compararCartas();
       //si son iguales, las dejo volteadas
-      if (firstCardSelected.id === secondCardSelected.id) {
+
+      if (firstCardSelected === null && secondCardSelected === null) {
         return;
       }
       //si no son iguales, las vuelvo a voltear despues de 2 segundos
       setTimeout(() => {
-        firstCardSelected.classList.toggle("flipped");
-        secondCardSelected.classList.toggle("flipped");
+        firstCardSelected.classList.remove("flipped");
+        secondCardSelected.classList.remove("flipped");
         firstCardSelected = null;
         secondCardSelected = null;
       }, 1500);
@@ -146,9 +147,10 @@ function cardEventAssign(cardElement) {
   });
 }
 //funcion para comparar las cartas seleccionadas
-function compararCartas() {
+compararCartas = () => {
   if (firstCardSelected.id === secondCardSelected.id) {
-    console.log("¡Match encontrado!");
+    alert("¡Match encontrado!");
+    debugger;
     //bloquear las cartas que hicieron match
     firstCardSelected.classList.add("blocked");
     secondCardSelected.classList.add("blocked");
@@ -157,7 +159,7 @@ function compararCartas() {
     firstCardSelected = null;
     secondCardSelected = null;
   }
-}
+};
 //funcion para obtener el valor del radio button seleccionado
 function getSelectedRadioValue() {
   const selected = document.querySelector("input[name='level']:checked");
