@@ -67,7 +67,7 @@ body {
 .card-inner.iluminated {
   box-shadow: 0 0 20px 0 gold;
 }
-.car.blocked {
+.card-inner.blocked {
   pointer-events: none;
   cursor: default;
   opacity: 0.9;
