@@ -160,12 +160,26 @@ function cardEventAssign(cardElement) {
         return;
       }
 
+      //matchesCount es igual a la cantidad de pares, el juego termino ganaste
+      if (matchesCount === (currentLevel * currentLevel) / 2) {
+        setTimeout(() => {
+          alert("¡Felicidades! ¡Has ganado el juego!");
+
+          //almacenar el mejor tiempo
+          almacenarMejorTiempo();
+
+          //resetear el juego
+          gameCleanUp();
+
+          //recargar la pagina para empezar de nuevo
+          window.location.reload();
+        }, 500);
+
+        return;
+      }
+
       //si son iguales, las dejo volteadas
       if (firstCardSelected === null && secondCardSelected === null) {
-        //ACTUALIZO LOS ACIERTOS
-        matchesCount++;
-        updateMovesDisplay();
-
         return;
       }
 
@@ -180,6 +194,26 @@ function cardEventAssign(cardElement) {
       }, 1000);
     }
   });
+}
+//funcion almacenar mejor tiempo en localstorage
+function almacenarMejorTiempo() {
+  const bestTimeKey = `bestTime_Level_${currentLevel}`;
+  const storedBestTime = localStorage.getItem(bestTimeKey);
+  if (
+    storedBestTime === null ||
+    secondsElapsed < parseInt(storedBestTime, 10)
+  ) {
+    localStorage.setItem(bestTimeKey, secondsElapsed.toString());
+    alert("¡Nuevo mejor tiempo: " + secondsElapsed + " segundos!");
+  } else {
+    alert(
+      "Tu tiempo: " +
+        secondsElapsed +
+        " segundos. Mejor tiempo: " +
+        storedBestTime +
+        " segundos.",
+    );
+  }
 }
 //funcion para actualizar el display de movimientos
 function updateMovesDisplay() {
@@ -226,6 +260,14 @@ function startTimer() {
   movesCount = (currentLevel * currentLevel) / 2; //inicializo en la cantidad de pares
   updateMovesDisplay();
   matchesCount = 0;
+
+  //mostrar mejor tiempo almacenado
+  const bestTimeKey = `bestTime_Level_${currentLevel}`;
+  const storedBestTime = localStorage.getItem(bestTimeKey);
+  if (storedBestTime !== null) {
+    const bestTimeElement = document.getElementById("best-time");
+    bestTimeElement.textContent = "Mejor Tiempo: " + storedBestTime + "s";
+  }
 }
 //funcion para comparar las cartas seleccionadas
 compararCartas = () => {
@@ -240,6 +282,10 @@ compararCartas = () => {
     //resetear las cartas seleccionadas
     firstCardSelected = null;
     secondCardSelected = null;
+
+    //ACTUALIZO LOS ACIERTOS
+    matchesCount++;
+    updateMovesDisplay();
   } else {
     //restar un movimiento
     movesCount--;
