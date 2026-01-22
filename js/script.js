@@ -1,5 +1,14 @@
 /*DEFINICION DE VARIABLES */
 const cardContainer = document.querySelector("#card-container");
+const infoContainer = document.querySelector("#info");
+let click = 0;
+let timerId = null;
+let secondsElapsed = 0;
+let movesCount = 0;
+let matchesCount = 0;
+let currentLevel;
+
+//ARRAY PARA GUARDAR LA LISTA DE PAISES
 let listaPaises = [];
 
 //VARIABLE PARA CONSUMIR el api
@@ -12,7 +21,7 @@ let secondCardSelected = null;
 /*LOAD DE LA PAGINA */
 
 // obtengo el nivels eleccionado al cargar la pagina
-let currentLevel = (function () {
+currentLevel = (function () {
   const selected = document.querySelector("input[name='level']:checked");
   return selected ? parseInt(selected.value, 10) : null;
 })();
@@ -40,8 +49,8 @@ document.addEventListener("change", (e) => {
     window.currentLevel = currentLevel;
 
     /*LOGICA CUANDO CAMBIA EL NIVEL */
-    // Limpiar el contenedor y regenerar las cartas
-    cardContainer.innerHTML = "";
+    //limpiar el juego anterior
+    gameCleanUp();
 
     //LLAMO A LA FUNCION DE LOGICA DEL JUEGO
     generateGameLogic();
@@ -77,9 +86,13 @@ function generateGameLogic() {
 // Genera las cartas según el nivel
 function generateCardsFromLevel(countryName, flagURL, countryCode) {
   //genro la carta
+  const card = document.createElement("div");
+  card.className = "card";
+  card.id = countryCode;
+  //genero el card-inner
   const cardInner = document.createElement("div");
   cardInner.className = "card-inner";
-  cardInner.id = countryCode;
+
   //genero el frente de la carta
   const cardFront = document.createElement("div");
   cardFront.className = "card-front";
@@ -95,12 +108,12 @@ function generateCardsFromLevel(countryName, flagURL, countryCode) {
   //armo la carta
   cardInner.appendChild(cardFront);
   cardInner.appendChild(cardBack);
-  // cardContain.appendChild(cardInner);
+  card.appendChild(cardInner);
 
   //asignarle los eventos a las cartas
-  cardEventAssign(cardInner);
+  cardEventAssign(card);
 
-  return cardInner;
+  return card;
 }
 
 //funcion asignar eventos a las cartas generadas
@@ -121,6 +134,10 @@ function cardEventAssign(cardElement) {
     //volteo la primera carta
     cardElement.classList.add("flipped");
 
+    //aca activo el timer del juego
+    if (click === 0) startTimer();
+    click++; //cuando gane reseteo a 0
+
     //guardo la carta seleccionada y comparo con la segunda carta
     if (firstCardSelected === null) {
       firstCardSelected = cardElement;
@@ -131,26 +148,91 @@ function cardEventAssign(cardElement) {
       secondCardSelected = cardElement;
       //comparar las dos cartas seleccionadas
       compararCartas();
-      //si son iguales, las dejo volteadas
 
-      if (firstCardSelected === null && secondCardSelected === null) {
+      //si movescount es cero, el juego termino perdiste
+      if (movesCount === 0) {
+        alert("¡Juego terminado! No te quedan mas movimientos.");
+        //resetear el juego
+        gameCleanUp();
+
+        //recargar la pagina para empezar de nuevo
+        window.location.reload();
         return;
       }
+
+      //si son iguales, las dejo volteadas
+      if (firstCardSelected === null && secondCardSelected === null) {
+        //ACTUALIZO LOS ACIERTOS
+        matchesCount++;
+        updateMovesDisplay();
+
+        return;
+      }
+
       //si no son iguales, las vuelvo a voltear despues de 2 segundos
       setTimeout(() => {
         firstCardSelected.classList.remove("flipped");
         secondCardSelected.classList.remove("flipped");
+
+        //resetear las cartas seleccionadas
         firstCardSelected = null;
         secondCardSelected = null;
-      }, 1500);
+      }, 1000);
     }
   });
+}
+//funcion para actualizar el display de movimientos
+function updateMovesDisplay() {
+  const movesElement = document.getElementById("moves");
+  movesElement.textContent = "Movimientos: " + movesCount;
+
+  const matchesElement = document.getElementById("matches");
+  matchesElement.textContent = "Aciertos: " + matchesCount;
+}
+//funcion para empezar el timer del juego
+function startTimer() {
+  //implementar timer
+  const timer = document.createElement("div");
+  timer.id = "timer";
+  timer.textContent = "Tiempo: " + secondsElapsed + "s";
+  infoContainer.appendChild(timer);
+
+  //implementar movimientos
+  const moves = document.createElement("div");
+  moves.id = "moves";
+  moves.textContent = "Movimientos: 0";
+  infoContainer.appendChild(moves);
+
+  //implementar aciertos
+  const matches = document.createElement("div");
+  matches.id = "matches";
+  matches.textContent = "Aciertos: 0";
+  infoContainer.appendChild(matches);
+
+  //implementar mejor tiempo
+  const bestTime = document.createElement("div");
+  bestTime.id = "best-time";
+  bestTime.textContent = "Mejor Tiempo: 0s";
+  infoContainer.appendChild(bestTime);
+
+  //iniciar el timer
+  timerId = setInterval(() => {
+    secondsElapsed++;
+    timer.textContent = "Tiempo: " + secondsElapsed + "s";
+  }, 1000);
+  console.warn(currentLevel);
+
+  //implementar movimientos y aciertos
+  movesCount = (currentLevel * currentLevel) / 2; //inicializo en la cantidad de pares
+  updateMovesDisplay();
+  matchesCount = 0;
 }
 //funcion para comparar las cartas seleccionadas
 compararCartas = () => {
   if (firstCardSelected.id === secondCardSelected.id) {
-    alert("¡Match encontrado!");
-    debugger;
+    setTimeout(() => {
+      alert("¡Match encontrado!");
+    }, 500);
     //bloquear las cartas que hicieron match
     firstCardSelected.classList.add("blocked");
     secondCardSelected.classList.add("blocked");
@@ -158,6 +240,10 @@ compararCartas = () => {
     //resetear las cartas seleccionadas
     firstCardSelected = null;
     secondCardSelected = null;
+  } else {
+    //restar un movimiento
+    movesCount--;
+    updateMovesDisplay();
   }
 };
 //funcion para obtener el valor del radio button seleccionado
@@ -200,6 +286,21 @@ function getCountriesForLevel(level) {
   return pairedCountries;
 }
 
+//funcion de limpieza del juego anterior
+function gameCleanUp() {
+  // Limpiar el contenedor y regenerar las cartas
+  cardContainer.innerHTML = "";
+  //resetear el infocontainer
+  infoContainer.innerHTML = "";
+  // Resetear variables del juego
+  click = 0;
+  secondsElapsed = 0;
+  clearInterval(timerId);
+  timerId = null;
+  secondsElapsed = 0;
+  movesCount = 0;
+  matchesCount = 0;
+}
 /*ligar el input tipo radio de manera que el seleccionado me indique,
 en el value, cuantos pares de cartas debo hacer
 --crear una funcion que genere las cartas en el html segun la cantidad seleccionada
